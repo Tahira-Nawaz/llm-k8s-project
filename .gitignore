@@ -1,0 +1,39 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Variables
+# terraform.tfvars
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Plans
+*.tfplan
+plan.out
+
+# Kubeconfig / access
+kubeconfig.yaml
+*.kubeconfig
+admin.conf
+
+# Keys
+*.pem
+*.key
+id_rsa
+id_ed25519
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

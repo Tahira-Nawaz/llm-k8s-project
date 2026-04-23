@@ -1,0 +1,97 @@
+name: Terraform CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - none
+  pull_request:
+
+jobs:
+  terraform:
+    name: Terraform Workflow
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./kubernetes/infrastructure/terraform/rke2-aws-cluster
+
+    steps:
+      # -------------------------------------------------
+      # Checkout Code
+      # -------------------------------------------------
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # -------------------------------------------------
+      # Setup Terraform
+      # -------------------------------------------------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      # -------------------------------------------------
+      # AWS Credentials
+      # -------------------------------------------------
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      # -------------------------------------------------
+      # Terraform Init
+      # -------------------------------------------------
+      - name: Terraform Init
+        run: terraform init -reconfigure
+
+      # -------------------------------------------------
+      # Terraform Format Check
+      # -------------------------------------------------
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      # -------------------------------------------------
+      # Terraform Validate
+      # -------------------------------------------------
+      - name: Terraform Validate
+        run: terraform validate
+
+      # -------------------------------------------------
+      # Terraform Plan
+      # -------------------------------------------------
+      - name: Terraform Plan
+        run: terraform plan
+
+      # -------------------------------------------------
+      # Terraform Apply (only main branch)
+      # -------------------------------------------------
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
+
+      # -------------------------------------------------
+      # VERIFY TERRAFORM OUTPUTS ONLY
+      # -------------------------------------------------
+      - name: Verify Terraform Outputs
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "===== TERRAFORM OUTPUTS ====="
+
+          echo "S3 Bucket:"
+          terraform output artifact_bucket_name || true
+
+          echo "IAM Role:"
+          terraform output node_iam_role_name || true
+
+          echo "Subnets:"
+          terraform output public_subnet_names || true
+
+          echo "Route53 Domain:"
+          terraform output route53_domain_name || true
+
+          echo "Rancher Node Security Group Name:"
+          terraform output rancher_node_sg_name || true
+
+      
