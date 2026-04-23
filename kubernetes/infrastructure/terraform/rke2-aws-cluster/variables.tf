@@ -86,3 +86,7 @@ variable "cluster_name" {
   description = "Load balancer hostname for ingress"
   type        = string
 }
+variable "aws_internet_gateway_id" {
+  description = "Kubernetes cluster name for cluster ownership tags."
+  type        = string
+}

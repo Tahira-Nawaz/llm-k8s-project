@@ -4,6 +4,7 @@
 
 
 module "subnets" {
+  aws_internet_gateway = var.aws_internet_gateway_id
   source              = "./modules/subnet"
   cluster_name        = var.cluster_name
   environment         = var.environment

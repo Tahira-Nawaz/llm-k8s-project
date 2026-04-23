@@ -32,3 +32,9 @@ variable "availability_zones" {
   description = "List of availability zones (must match length of public_subnet_cidrs)."
   type        = list(string)
 }
+
+variable "aws_internet_gateway" {
+  description = "Kubernetes cluster name for cluster ownership tags."
+  type        = string
+}
+

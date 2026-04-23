@@ -1,11 +1,11 @@
-# ---- Internet Gateway ----
-resource "aws_internet_gateway" "main" {
-  vpc_id = var.vpc_id
+# # ---- Internet Gateway ----
+# resource "aws_internet_gateway" "main" {
+#   vpc_id = var.vpc_id
 
-  tags = {
-    Name = "${var.project_name}-${var.environment}-igw"
-  }
-}
+#   tags = {
+#     Name = "${var.project_name}-${var.environment}-igw"
+#   }
+# }
 
 # ---- Public Subnets ----
 resource "aws_subnet" "public" {
@@ -29,7 +29,7 @@ resource "aws_route_table" "public" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
+    gateway_id = var.aws_internet_gateway
   }
 
   tags = {
