@@ -10,7 +10,7 @@ owner        = "ai-team"
 # VPC / Networking Configuration
 # =============================================================================
 vpc_cidr            = "10.0.0.0/16"
-public_subnet_cidrs = ["10.0.4.0/24"]
+public_subnet_cidrs = ["172.31.200.0/24"]
 availability_zones  = ["us-east-2a"]
 vpc_id              = "vpc-0bd263ec43ecb3acf"
 
