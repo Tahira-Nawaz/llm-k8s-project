@@ -3,7 +3,7 @@ data "aws_vpc" "existing" {
 }
 
 resource "aws_subnet" "public" {
-  count = length(var.public_subnet_cidrs)
+  # count = length(var.public_subnet_cidrs)
 
   vpc_id                  = data.aws_vpc.existing.id
   cidr_block              = var.public_subnet_cidrs[count.index]
@@ -11,6 +11,6 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "${var.project_name}-public-subnet-${count.index + 1}"
+    Name = "${var.project_name}-public-subnet"
   }
 }
