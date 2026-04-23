@@ -36,7 +36,7 @@ output "public_subnet_name" {
 # -----------------------------------------------------------------------------
 output "rancher_node_sg_name" {
   description = "Security Group name for Rancher nodes"
-  value       = module.security_groups.security_group_name
+  value       = module.security_groups.master_sg_id
 }
 
 # -----------------------------------------------------------------------------
