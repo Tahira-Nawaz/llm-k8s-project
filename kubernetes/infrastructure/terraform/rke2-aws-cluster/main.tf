@@ -5,13 +5,13 @@
 
 module "subnets" {
   aws_internet_gateway = var.aws_internet_gateway_id
-  source              = "./modules/subnet"
-  cluster_name        = var.cluster_name
-  environment         = var.environment
-  vpc_id              = var.vpc_id
-  project_name        = var.project_name
-  public_subnet_cidrs = var.public_subnet_cidrs
-  availability_zones  = var.availability_zones
+  source               = "./modules/subnet"
+  cluster_name         = var.cluster_name
+  environment          = var.environment
+  vpc_id               = var.vpc_id
+  project_name         = var.project_name
+  public_subnet_cidrs  = var.public_subnet_cidrs
+  availability_zones   = var.availability_zones
 }
 # -----------------------------------------------------------------------------
 # S3 - Artifact bucket only (state bucket created manually)
