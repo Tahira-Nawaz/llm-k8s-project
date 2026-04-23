@@ -6,7 +6,7 @@
 # Trust Policy (EC2 can assume this role)
 # -------------------------------------------------------------------
 resource "aws_iam_role" "node" {
-  name = "${var.project_name}-${var.environment}-node-role"
+  name = "${var.project_name}-${var.environment}-node-profile"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -22,7 +22,7 @@ resource "aws_iam_role" "node" {
   })
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-node-role"
+    Name        = "${var.project_name}-${var.environment}-node-profile"
     Project     = var.project_name
     Environment = var.environment
   }

@@ -26,7 +26,7 @@ module "s3" {
 # IAM – Instance roles and profiles for EC2 nodes
 # -----------------------------------------------------------------------------
 module "iam" {
-  source = "./modules/iam"
+  source = "./modules/iam1"
 
   project_name        = var.project_name
   environment         = var.environment
