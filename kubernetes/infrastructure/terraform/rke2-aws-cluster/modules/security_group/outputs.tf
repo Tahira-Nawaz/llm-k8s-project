@@ -1,8 +1,9 @@
-output "security_group_id" {
-  description = "ID of the created security group"
-  value       = aws_security_group.rke2_sg.id
+output "master_sg_id" {
+  description = "ID of the master node security group."
+  value       = aws_security_group.master.id
 }
-output "security_group_name" {
-  description = "ID of the created security group"
-  value       = aws_security_group.rke2_sg.name
+
+output "worker_sg_id" {
+  description = "ID of the worker node security group."
+  value       = aws_security_group.worker.id
 }

@@ -5,7 +5,8 @@
 
 module "subnets" {
   source = "./modules/subnet"
-
+  cluster_name = var.cluster_name
+  environment = var.environment
   vpc_id              = var.vpc_id
   project_name        = var.project_name
   public_subnet_cidrs = var.public_subnet_cidrs
@@ -26,8 +27,7 @@ module "s3" {
 # IAM – Instance roles and profiles for EC2 nodes
 # -----------------------------------------------------------------------------
 module "iam" {
-  source = "./modules/iam1"
-
+  source = "./modules/iam"
   project_name        = var.project_name
   environment         = var.environment
   artifact_bucket_arn = module.s3.artifact_bucket_arn

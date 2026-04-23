@@ -82,3 +82,7 @@ variable "ingress_lb_hostname" {
   description = "Load balancer hostname for ingress"
   type        = string
 }
+variable "cluster_name" {
+  description = "Load balancer hostname for ingress"
+  type        = string
+}

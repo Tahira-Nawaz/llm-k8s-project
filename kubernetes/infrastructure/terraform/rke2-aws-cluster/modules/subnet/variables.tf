@@ -1,19 +1,34 @@
-variable "vpc_id" {
-  description = "Existing VPC ID"
+variable "project_name" {
+  description = "Project name prefix."
   type        = string
 }
 
-variable "project_name" {
-  description = "Project name for tagging"
+variable "environment" {
+  description = "Environment label."
   type        = string
+}
+
+variable "cluster_name" {
+  description = "Kubernetes cluster name for cluster ownership tags."
+  type        = string
+}
+
+variable "vpc_id" {
+  description = "Kubernetes cluster name for cluster ownership tags."
+  type        = string
+}
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC."
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "public_subnet_cidrs" {
-  description = "List of public subnet CIDRs"
+  description = "List of CIDR blocks for public subnets."
   type        = list(string)
 }
 
 variable "availability_zones" {
-  description = "List of AZs"
+  description = "List of availability zones (must match length of public_subnet_cidrs)."
   type        = list(string)
 }

@@ -15,5 +15,5 @@ variable "artifact_bucket_arn" {
 
 variable "zone_id" {
   description = "dns zone id"
-  type        = string
+  type        = string  
 }
