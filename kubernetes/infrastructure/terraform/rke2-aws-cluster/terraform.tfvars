@@ -37,4 +37,4 @@ zone_id            = "Z02745981J3FQC8Y0Z4P7"
 
 # ingress_record_name = "*.llm-k8s.awssolutionsprovider.com"
 ingress_lb_hostname = "k8s-test-traefik-dd67347f98-bc4cb8c2aae783c5.elb.us-east-2.amazonaws.com"
-cluster_name = "value"
+cluster_name        = "value"
