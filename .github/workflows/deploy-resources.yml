@@ -86,10 +86,10 @@ jobs:
           terraform output node_iam_role_name || true
 
           echo "Subnets:"
-          terraform output public_subnet_names || true
+          terraform output public_subnet_name || true
 
           echo "Route53 Domain:"
-          terraform output route53_domain_name || true
+          terraform output route53_record_fqdn || true
 
           echo "Rancher Node Security Group Name:"
           terraform output rancher_node_sg_name || true
