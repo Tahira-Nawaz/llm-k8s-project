@@ -22,7 +22,7 @@ server:
     enabled: false
 
   config:
-    url: https://argocd.llm-k8s.awssolutionsprovider.com
+    url: https://argocd.llm-k8s-cluster.awssolutionsprovider.com
 
 repoServer:
   replicas: 1
@@ -34,9 +34,12 @@ dex:
   enabled: true
 EOF
 
-echo "⚙️ Installing Argo CD..."
-helm install argocd argo/argo-cd \
+
+echo "⚙️ Installing or Upgrading Argo CD..."
+
+helm upgrade --install argocd argo/argo-cd \
   -n argocd \
+  --create-namespace \
   -f argocd-values.yaml
 
 echo "⏳ Waiting for Argo CD pods..."
@@ -52,17 +55,17 @@ metadata:
   namespace: argocd
 spec:
   parentRefs:
-    - name: traefik-wild
+    - name: traefik
       namespace: traefik
   hostnames:
-    - "argocd.llm-k8s.awssolutionsprovider.com"
+    - "argocd.llm-k8s-cluster.awssolutionsprovider.com"
   rules:
     - matches:
         - path:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: argocd-server
+        - name: argocd-server 
           namespace: argocd
           port: 80
 EOF
@@ -72,4 +75,4 @@ kubectl -n argocd patch deployment argocd-server \
   -p '{"spec":{"template":{"spec":{"containers":[{"name":"argocd-server","args":["--insecure"]}]}}}}' || true
 
 echo "✅ DONE!"
-echo "🌍 Access URL: https://argocd.llm-k8s.awssolutionsprovider.com"
+echo "🌍 Access URL: https://argocd.llm-k8s-cluster.awssolutionsprovider.com"
