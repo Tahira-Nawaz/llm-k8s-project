@@ -1,0 +1,96 @@
+name: Run Kubernetes Setup Scripts on EC2
+
+on:
+  push:
+    branches:
+      - none
+
+jobs:
+
+  aws-lb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: Run AWS LB script
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/ubuntu/scripts
+            chmod +x 1_aws_lb.sh
+            ./1_aws_lb.sh
+          EOF
+
+
+  ebs-csi:
+    needs: aws-lb
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: Run EBS CSI script
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/ubuntu/scripts
+            chmod +x 2_ebscsi.sh
+            ./2_ebscsi.sh
+          EOF
+
+
+  cluster-manager:
+    needs: ebs-csi
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: Run cluster manager script
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/ubuntu/scripts
+            chmod +x 3_c_manager.sh
+            ./3_c_manager.sh
+          EOF
+
+
+  traefik:
+    needs: cluster-manager
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: Run Traefik script
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/ubuntu/scripts
+            chmod +x 4_traefik_ingress.sh
+            ./4_traefik_ingress.sh
+          EOF
+
+
+  argocd:
+    needs: traefik
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: Run ArgoCD script
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/ubuntu/scripts
+            chmod +x 5_argocd.sh
+            ./5_argocd.sh
+          EOF

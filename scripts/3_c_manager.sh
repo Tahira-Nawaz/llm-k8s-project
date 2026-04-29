@@ -37,13 +37,13 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: mkhalid@puffersoft.com
+    email: tnawaz@puffersoft.com
     privateKeySecretRef:
       name: letsencrypt-route53-account-key
     solvers:
       - dns01:
           route53:
-            region: us-west-2
+            region: us-east-2
             hostedZoneID: Z02745981J3FQC8Y0Z4P7
 EOF
 

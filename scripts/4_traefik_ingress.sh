@@ -100,7 +100,7 @@ metadata:
 spec:
   secretName: traefik-tls
   dnsNames:
-    - "*.llm-k8s-cluster.awssolutionsprovider.com"
+    - "*.llm-k8s.awssolutionsprovider.com"
 
   issuerRef:
     kind: ClusterIssuer
@@ -122,7 +122,7 @@ spec:
     - name: https
       protocol: HTTPS
       port: 443
-      hostname: "*.llm-k8s-cluster.awssolutionsprovider.com"
+      hostname: "*.llm-k8s.awssolutionsprovider.com"
       tls:
         mode: Terminate
         certificateRefs:

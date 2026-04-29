@@ -10,8 +10,9 @@ helm repo add argo https://argoproj.github.io/argo-helm || true
 helm repo update
 
 echo "📝 Creating values file..."
-cat <<EOF > argocd-values.yaml
+cat <<EOF > argocd-values1.yaml
 server:
+  replicas: 2
   extraArgs:
     - --insecure
 
@@ -22,13 +23,16 @@ server:
     enabled: false
 
   config:
-    url: https://argocd.llm-k8s-cluster.awssolutionsprovider.com
-
-repoServer:
-  replicas: 1
+    url: https://argocd.llm-k8s.awssolutionsprovider.com
 
 controller:
   replicas: 1
+
+repoServer:
+  replicas: 2
+
+applicationSet:
+  replicas: 2
 
 dex:
   enabled: true
@@ -40,7 +44,7 @@ echo "⚙️ Installing or Upgrading Argo CD..."
 helm upgrade --install argocd argo/argo-cd \
   -n argocd \
   --create-namespace \
-  -f argocd-values.yaml
+  -f argocd-values1.yaml
 
 echo "⏳ Waiting for Argo CD pods..."
 kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s || true
@@ -58,7 +62,7 @@ spec:
     - name: traefik
       namespace: traefik
   hostnames:
-    - "argocd.llm-k8s-cluster.awssolutionsprovider.com"
+    - "argocd.llm-k8s.awssolutionsprovider.com"
   rules:
     - matches:
         - path:
@@ -75,4 +79,4 @@ kubectl -n argocd patch deployment argocd-server \
   -p '{"spec":{"template":{"spec":{"containers":[{"name":"argocd-server","args":["--insecure"]}]}}}}' || true
 
 echo "✅ DONE!"
-echo "🌍 Access URL: https://argocd.llm-k8s-cluster.awssolutionsprovider.com"
+echo "🌍 Access URL: https://argocd.llm-k8s.awssolutionsprovider.com"

@@ -32,10 +32,10 @@ artifact_bucket_name = "llm-k8s-artifacts"
 # =============================================================================
 # Route53 / DNS Configuration
 # =============================================================================
-domain_name_prefix = "llm-k8s"
+domain_name_prefix = "*.llm-k8s"
 zone_id            = "Z02745981J3FQC8Y0Z4P7"
 
 # ingress_record_name = "*.llm-k8s.awssolutionsprovider.com"
-ingress_lb_hostname     = "k8s-test-traefik-dd67347f98-bc4cb8c2aae783c5.elb.us-east-2.amazonaws.com"
+ingress_lb_hostname     = "k8s-kubesyst-traefik-56bd0523c7-835be0324b75f26c.elb.us-east-2.amazonaws.com"
 cluster_name            = "value"
 aws_internet_gateway_id = "igw-03e7ab288426a6ea3"

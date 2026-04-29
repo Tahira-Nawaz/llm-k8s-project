@@ -4,14 +4,6 @@ sudo cp /var/lib/rancher/rke2/bin/kubectl /usr/local/bin
 sudo cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
 sudo chmod 644 ~/.kube/config
 
-# Configure kubectl for the local user (if required, specify the user)
-sudo mkdir -p /home/ubuntu/.kube
-sudo cp /etc/rancher/rke2/rke2.yaml /home/ubuntu/.kube/config
-sudo chown ubuntu:ubuntu /home/ubuntu/.kube/config
-sudo chmod 644 /home/ubuntu/.kube/config
-
-kubectl taint nodes llm-k8s-1-master-57tjt-mbl7q node-role.kubernetes.io/control-plane=:NoSchedule
-
 # ============================================
 # 1️⃣ Helm Installation (Prerequisite)
 # ============================================
