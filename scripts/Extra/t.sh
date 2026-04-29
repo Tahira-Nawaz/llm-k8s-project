@@ -1,24 +1,12 @@
 #!/bin/bash
 
-# =====================================================
-# 1. Domain Configuration
-# =====================================================
-DOMAIN="llm-k8s.awssolutionsprovider.com"
-
-# =====================================================
-# 2. Traefik Installation Start
-# =====================================================
 echo "🚀 Installing Traefik with Ingress + Gateway API..."
 
-# =====================================================
-# 3. Add Helm Repository
-# =====================================================
+# Add Helm repo
 helm repo add traefik https://traefik.github.io/charts
 helm repo update
 
-# =====================================================
-# 4. Create Helm Values File
-# =====================================================
+# Create values1.yaml
 cat <<EOF > values1.yaml
 api:
   dashboard: true
@@ -78,9 +66,9 @@ EOF
 
 echo "📝 values1.yaml created"
 
-# =====================================================
-# 5. Install / Upgrade Traefik
-# =====================================================
+# -----------------------------
+# Install / Upgrade Traefik
+# -----------------------------
 helm upgrade --install traefik traefik/traefik \
   -n kube-system \
   --create-namespace \
@@ -89,16 +77,20 @@ helm upgrade --install traefik traefik/traefik \
 echo "⏳ Waiting for Traefik rollout..."
 kubectl rollout status deployment traefik -n kube-system
 
-echo "✅ Traefik installed successfully!"
+echo "🌐 Traefik Service:"
+kubectl get svc -n kube-system traefik
 
-# =====================================================
-# 6. Create Namespace
-# =====================================================
-kubectl create ns traefik || true
+echo "✅ Traefik installed with Ingress + Gateway API!"
 
-# =====================================================
-# 7. Create TLS Certificate
-# =====================================================
+# -----------------------------
+# namespace
+# -----------------------------
+kubectl create ns traefik
+
+# -----------------------------
+# Certificate
+# -----------------------------
+
 cat <<EOF | kubectl apply -f -
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -108,25 +100,23 @@ metadata:
 spec:
   secretName: traefik-tls
   dnsNames:
-    - "*.${DOMAIN}"
+    - "*.llm-k8s.awssolutionsprovider.com"
 
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-route53
 EOF
 
-echo "⏳ Waiting for Certificate to be Ready..."
-
 # =====================================================
-# 8. Check Certificate Status
+# Check Certificate Status (Condition = True)
 # =====================================================
 kubectl wait --for=condition=Ready certificate/traefik-tls -n traefik --timeout=300s
 
 echo "🔐 Certificate is Ready!"
 
-# =====================================================
-# 9. Create Gateway
-# =====================================================
+# -----------------------------
+# Gateway
+# -----------------------------
 kubectl apply -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -139,7 +129,7 @@ spec:
     - name: https
       protocol: HTTPS
       port: 443
-      hostname: "*.${DOMAIN}"
+      hostname: "*.llm-k8s.awssolutionsprovider.com"
       tls:
         mode: Terminate
         certificateRefs:
@@ -151,17 +141,3 @@ spec:
           - kind: HTTPRoute
           - kind: GRPCRoute
 EOF
-
-
-# =====================================================
-# 10. Verification
-# =====================================================
-
-echo "🌐 Traefik Service:"
-kubectl get svc -n kube-system traefik
-
-echo "🔐 Certificate Status:"
-kubectl get certificate -n traefik
-
-echo "🚪 Gateway Status:"
-kubectl get gateway -n traefik
