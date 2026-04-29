@@ -141,3 +141,8 @@ spec:
           - kind: HTTPRoute
           - kind: GRPCRoute
 EOF
+
+
+
+
+# vi /home/ubuntu/.ssh/authorized_keys
