@@ -80,7 +80,7 @@ metadata:
 spec:
   parentRefs:
     - name: traefik
-      namespace: traefik1
+      namespace: traefik
   hostnames:
     - "${DOMAIN}"
   rules:
