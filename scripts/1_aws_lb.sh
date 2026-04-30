@@ -39,3 +39,19 @@ kubectl get deployment -n kube-system | grep aws-load-balancer
 
 echo "Checking pods..."
 kubectl get pods -n kube-system | grep aws-load-balancer
+
+echo "⏳ Waiting until pods are READY..."
+
+for i in {1..30}; do
+  STATUS=$(kubectl get pods -n kube-system \
+    -l app.kubernetes.io/name=aws-load-balancer-controller \
+    -o jsonpath='{.items[*].status.containerStatuses[*].ready}' 2>/dev/null)
+
+  if [[ "$STATUS" == *"false"* || -z "$STATUS" ]]; then
+    echo "❌ Not ready yet... retry $i"
+    sleep 10
+  else
+    echo "✅ All pods are READY (True)"
+    break
+  fi
+done
