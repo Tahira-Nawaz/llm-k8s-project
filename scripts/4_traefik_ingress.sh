@@ -89,7 +89,7 @@ echo "✅ Traefik installed successfully!"
 
 DNS=""
 while [ -z "$DNS" ] || [ "$DNS" == "<pending>" ]; do
-  DNS=$(kubectl get svc traefik -n traefik1 -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+  DNS=$(kubectl get svc traefik -n kube-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
   echo "Waiting for LB DNS..."
   sleep 5
 done
