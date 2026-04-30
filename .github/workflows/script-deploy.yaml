@@ -14,8 +14,7 @@ jobs:
   aws-lb:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup SSH key
         run: |
@@ -24,17 +23,14 @@ jobs:
 
       - name: Run AWS LB script
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST << 'EOF'
-            bash -s < scripts/1_aws_lb.sh
-          EOF
+          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST "bash -s" < scripts/1_aws_lb.sh
 
 
   ebs-csi:
     needs: aws-lb
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup SSH key
         run: |
@@ -43,17 +39,14 @@ jobs:
 
       - name: Run EBS CSI script
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST << 'EOF'
-            bash -s < scripts/2_ebscsi.sh
-          EOF
+          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST "bash -s" < scripts/2_ebscsi.sh
 
 
   cluster-manager:
     needs: ebs-csi
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup SSH key
         run: |
@@ -62,17 +55,14 @@ jobs:
 
       - name: Run Cluster Manager script
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST << 'EOF'
-            bash -s < scripts/3_c_manager.sh
-          EOF
+          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST "bash -s" < scripts/3_c_manager.sh
 
 
   traefik:
     needs: cluster-manager
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup SSH key
         run: |
@@ -81,17 +71,14 @@ jobs:
 
       - name: Run Traefik script
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST << 'EOF'
-            bash -s < scripts/4_traefik_ingress.sh
-          EOF
+          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST "bash -s" < scripts/4_traefik_ingress.sh
 
 
   argocd:
     needs: traefik
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup SSH key
         run: |
@@ -100,6 +87,4 @@ jobs:
 
       - name: Run ArgoCD script
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST << 'EOF'
-            bash -s < scripts/5_argocd.sh
-          EOF
+          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST "bash -s" < scripts/5_argocd.sh
