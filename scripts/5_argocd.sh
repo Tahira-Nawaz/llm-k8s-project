@@ -3,30 +3,109 @@
 set -e
 
 # =====================================================
-# 1. Domain Configuration
+# BASE DOMAIN CONFIGURATION
 # =====================================================
-DOMAIN="argocd.llm-k8s1.awssolutionsprovider.com"
+BASE_DOMAIN="llm-k8s1.awssolutionsprovider.com"
+ARGOCD_DOMAIN="argocd.${BASE_DOMAIN}"
+WILDCARD_DOMAIN="*.${BASE_DOMAIN}"
+
+echo "🌍 Base Domain: $BASE_DOMAIN"
+echo "🔐 Wildcard: $WILDCARD_DOMAIN"
+echo "🚀 ArgoCD: $ARGOCD_DOMAIN"
 
 # =====================================================
-# 2. Namespace Creation
+# 1. TRAEFIK NAMESPACE
 # =====================================================
-echo "🚀 Creating namespace..."
+kubectl create namespace traefik || true
+
+# =====================================================
+# 2. WILDCARD CERTIFICATE
+# =====================================================
+echo "🔐 Creating wildcard certificate..."
+
+cat <<EOF | kubectl apply -f -
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-cert
+  namespace: traefik
+spec:
+  secretName: wildcard-tls
+  dnsNames:
+    - "${WILDCARD_DOMAIN}"
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-route53
+EOF
+
+# =====================================================
+# 3. CERTIFICATE WAIT LOOP (IMPROVED)
+# =====================================================
+echo "⏳ Waiting for wildcard certificate to be READY..."
+
+CERT_NAME="wildcard-cert"
+NAMESPACE="traefik"
+MAX_RETRIES=30
+SLEEP=10
+
+for ((i=1; i<=MAX_RETRIES; i++)); do
+  STATUS=$(kubectl get certificate -n "$NAMESPACE" "$CERT_NAME" \
+    -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null | tr -d '[:space:]')
+
+  if [[ "$STATUS" == "True" ]]; then
+    echo "✅ Certificate is READY"
+    break
+  fi
+
+  echo "❌ Not ready yet... attempt $i/$MAX_RETRIES"
+  sleep $SLEEP
+done
+
+# =====================================================
+# 4. GATEWAY
+# =====================================================
+echo "🚪 Creating Gateway..."
+
+cat <<EOF | kubectl apply -f -
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: "${WILDCARD_DOMAIN}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: wildcard-tls
+      allowedRoutes:
+        namespaces:
+          from: All
+EOF
+
+# =====================================================
+# 5. ARGOCD NAMESPACE
+# =====================================================
 kubectl create namespace argocd || true
 
 # =====================================================
-# 3. Helm Repository Setup
+# 6. HELM REPO
 # =====================================================
-echo "📦 Adding Helm repo..."
 helm repo add argo https://argoproj.github.io/argo-helm || true
 helm repo update
 
 # =====================================================
-# 4. Argo CD Values File Creation
+# 7. ARGOCD VALUES
 # =====================================================
-echo "📝 Creating values file..."
-cat <<EOF > argocd-values1.yaml
+cat <<EOF > argocd-values.yaml
 server:
-  replicas: 2
+  replicas: 1
+
   extraArgs:
     - --insecure
 
@@ -37,41 +116,41 @@ server:
     enabled: false
 
   config:
-    url: https://${DOMAIN}
+    url: https://${ARGOCD_DOMAIN}
 
 controller:
   replicas: 1
 
 repoServer:
-  replicas: 2
+  replicas: 1
 
 applicationSet:
-  replicas: 2
+  replicas: 1
 
 dex:
   enabled: true
 EOF
 
 # =====================================================
-# 5. Install / Upgrade Argo CD
+# 8. INSTALL ARGOCD
 # =====================================================
-echo "⚙️ Installing or Upgrading Argo CD..."
+echo "⚙️ Installing ArgoCD..."
+
 helm upgrade --install argocd argo/argo-cd \
   -n argocd \
   --create-namespace \
-  -f argocd-values1.yaml
+  -f argocd-values.yaml
 
 # =====================================================
-# 6. Wait for Pods to be Ready
+# 9. WAIT PODS
 # =====================================================
-echo "⏳ Waiting for Argo CD pods..."
-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s || true
+kubectl wait --for=condition=Ready pod \
+  -n argocd --all --timeout=600s
 
 # =====================================================
-# 7. Traefik HTTPRoute Configuration
+# 10. HTTPROUTE
 # =====================================================
-echo "🌐 Creating HTTPRoute for Traefik..."
-kubectl apply -f - <<EOF
+cat <<EOF | kubectl apply -f -
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -82,58 +161,52 @@ spec:
     - name: traefik
       namespace: traefik
   hostnames:
-    - "${DOMAIN}"
+    - "${ARGOCD_DOMAIN}"
   rules:
     - matches:
         - path:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: argocd-server 
+        - name: argocd-server
           namespace: argocd
           port: 80
 EOF
 
 # =====================================================
-# 8. Patch Argo CD (Insecure Mode)
+# 11. WAIT API
 # =====================================================
-echo "🔧 Patching Argo CD for insecure mode..."
-kubectl -n argocd patch deployment argocd-server \
-  -p '{"spec":{"template":{"spec":{"containers":[{"name":"argocd-server","args":["--insecure"]}]}}}}' || true
+echo "⏳ Waiting for ArgoCD API..."
+
+until curl -k https://${ARGOCD_DOMAIN}/api/version >/dev/null 2>&1; do
+  echo "Waiting..."
+  sleep 10
+done
 
 # =====================================================
-# 9. Access Information
+# 12. ARGOCD CLI INSTALL
 # =====================================================
-echo "✅ DONE!"
-echo "🌍 Access URL: https://${DOMAIN}"
+echo "💻 Installing ArgoCD CLI..."
 
-# =====================================================
-# 10. Retrieve Admin Password
-# =====================================================
-echo "🔑 Initial Argo CD Admin Password:"
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
-
-# =====================================================
-# 11. Install Argo CD CLI
-# =====================================================
-echo "💻 Installing Argo CD CLI..."
 curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
 chmod +x argocd
 sudo mv argocd /usr/local/bin/
 
 # =====================================================
-# 12. Login to Argo CD CLI
+# 13. LOGIN
 # =====================================================
-ARGOCD_SERVER="${DOMAIN}"
-ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d)
+echo "🔑 Getting admin password..."
 
-echo "🌐 Logging in to Argo CD server at $ARGOCD_SERVER ..."
-argocd login "$ARGOCD_SERVER" \
+ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath='{.data.password}' | base64 -d)
+
+echo "🌐 Logging into ArgoCD..."
+
+argocd login "${ARGOCD_DOMAIN}" \
   --username admin \
   --password "$ARGOCD_PASSWORD" \
-  --grpc-web \
   --insecure
 
 argocd version
 
-echo "🌟 Argo CD installation and login successful for ${DOMAIN}."
+echo "🚀 DONE! ArgoCD is fully ready at https://${ARGOCD_DOMAIN}"
