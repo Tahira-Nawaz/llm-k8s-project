@@ -5,7 +5,7 @@ set -e
 # =====================================================
 # 1. Domain Configuration
 # =====================================================
-DOMAIN="argocd.llm-k8s.awssolutionsprovider.com"
+DOMAIN="argocd.llm-k8s1.awssolutionsprovider.com"
 
 # =====================================================
 # 2. Namespace Creation

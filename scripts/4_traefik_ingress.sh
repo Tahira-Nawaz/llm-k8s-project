@@ -3,7 +3,7 @@
 # =====================================================
 # 1. Domain Configuration
 # =====================================================
-DOMAIN="llm-k8s.awssolutionsprovider.com"
+DOMAIN="llm-k8s1.awssolutionsprovider.com"
 
 # =====================================================
 # 2. Traefik Installation Start
@@ -82,7 +82,7 @@ echo "📝 values1.yaml created"
 # 5. Install / Upgrade Traefik
 # =====================================================
 helm upgrade --install traefik traefik/traefik \
-  -n kube-system \
+  -n traefik1 \
   --create-namespace \
   -f values1.yaml
 
@@ -90,6 +90,18 @@ echo "⏳ Waiting for Traefik rollout..."
 kubectl rollout status deployment traefik -n kube-system
 
 echo "✅ Traefik installed successfully!"
+
+
+echo "⏳ Waiting for LoadBalancer DNS..."
+
+DNS=""
+while [ -z "$DNS" ] || [ "$DNS" == "<pending>" ]; do
+  DNS=$(kubectl get svc traefik -n traefik1 -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+  echo "Waiting for LB DNS..."
+  sleep 5
+done
+
+echo "✅ Traefik LoadBalancer DNS: $DNS"
 
 # =====================================================
 # 6. Create Namespace
@@ -115,8 +127,27 @@ spec:
     name: letsencrypt-route53
 EOF
 
-echo "⏳ Waiting for Certificate to be Ready..."
+echo "⏳ Waiting 40 seconds before checking status..."
+sleep 40
 
+echo "⏳ Waiting for Certificate to be Ready..."
+CERT_NAME="traefik-tls"
+NAMESPACE="traefik"
+MAX_RETRIES=10
+RETRY_INTERVAL=10
+
+for ((i=1; i<=MAX_RETRIES; i++)); do
+  STATUS=$(kubectl get certificate -n "$NAMESPACE" "$CERT_NAME" \
+    -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null | tr -d '[:space:]')
+
+  if [[ "$STATUS" == "True" ]]; then
+    echo "✅ Certificate '$CERT_NAME' is ready (attempt $i)"
+    break
+  else
+    echo "❌ Not ready yet (attempt $i/$MAX_RETRIES). Waiting $RETRY_INTERVAL seconds..."
+    sleep "$RETRY_INTERVAL"
+  fi
+done
 # =====================================================
 # 8. Check Certificate Status
 # =====================================================
