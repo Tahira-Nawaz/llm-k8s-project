@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # =====================================================
 # 2. Traefik Installation Start
 # =====================================================
@@ -83,17 +82,26 @@ helm upgrade --install traefik traefik/traefik \
   -f values1.yaml
 
 echo "⏳ Waiting for Traefik rollout..."
-kubectl rollout status deployment traefik -n kube-system
+kubectl rollout status deployment traefik -n system1
 
 echo "✅ Traefik installed successfully!"
 
+# =====================================================
+# 6. Wait for LoadBalancer DNS
+# =====================================================
 DNS=""
+
 while [ -z "$DNS" ] || [ "$DNS" == "<pending>" ]; do
-  DNS=$(kubectl get svc traefik -n system1 -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+  DNS=$(kubectl get svc traefik -n system1 \
+    -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
   echo "Waiting for LB DNS..."
   sleep 5
 done
 
 echo "✅ Traefik LoadBalancer DNS: $DNS"
+
+# =====================================================
+# 7. Show Service
+# =====================================================
 echo "🌐 Traefik Service:"
-kubectl get svc -n kube-system traefik
+kubectl get svc -n system1 traefik
