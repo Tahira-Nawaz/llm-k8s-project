@@ -104,4 +104,4 @@ echo "✅ Traefik LoadBalancer DNS: $DNS"
 # 7. Show Service
 # =====================================================
 echo "🌐 Traefik Service:"
-kubectl get svc -n system1 traefik
+kubectl get svc traefik -n system1
