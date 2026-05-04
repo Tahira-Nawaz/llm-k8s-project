@@ -1,18 +1,20 @@
 #!/bin/bash
 
 # =====================================================
-# 2. Traefik Installation Start
+# Namespace Variable
 # =====================================================
-echo "🚀 Installing Traefik with Ingress + Gateway API..."
+NAMESPACE="kube-system"
+
+echo "🚀 Installing Traefik in namespace: $NAMESPACE"
 
 # =====================================================
-# 3. Add Helm Repository
+# Add Helm Repository
 # =====================================================
 helm repo add traefik https://traefik.github.io/charts
 helm repo update
 
 # =====================================================
-# 4. Create Helm Values File
+# Create Helm Values File
 # =====================================================
 cat <<EOF > values1.yaml
 api:
@@ -74,25 +76,25 @@ EOF
 echo "📝 values1.yaml created"
 
 # =====================================================
-# 5. Install / Upgrade Traefik
+# Install / Upgrade Traefik
 # =====================================================
 helm upgrade --install traefik traefik/traefik \
-  -n system1 \
+  -n $NAMESPACE \
   --create-namespace \
   -f values1.yaml
 
 echo "⏳ Waiting for Traefik rollout..."
-kubectl rollout status deployment traefik -n system1
+kubectl rollout status deployment traefik -n $NAMESPACE
 
 echo "✅ Traefik installed successfully!"
 
 # =====================================================
-# 6. Wait for LoadBalancer DNS
+# Wait for LoadBalancer DNS
 # =====================================================
 DNS=""
 
 while [ -z "$DNS" ] || [ "$DNS" == "<pending>" ]; do
-  DNS=$(kubectl get svc traefik -n system1 \
+  DNS=$(kubectl get svc traefik -n $NAMESPACE \
     -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
   echo "Waiting for LB DNS..."
   sleep 5
@@ -101,7 +103,6 @@ done
 echo "✅ Traefik LoadBalancer DNS: $DNS"
 
 # =====================================================
-# 7. Show Service
+# Show Service
 # =====================================================
-echo "🌐 Traefik Service:"
-kubectl get svc traefik -n system1
+kubectl get svc traefik -n $NAMESPACE

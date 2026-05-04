@@ -5,7 +5,7 @@ set -e
 # BASE DOMAIN CONFIG
 # =====================================================
 
-BASE_DOMAIN="llm-k8s-tahira.awssolutionsprovider.com"
+BASE_DOMAIN="llm-k8s.awssolutionsprovider.com"
 WILDCARD_DOMAIN="*.${BASE_DOMAIN}"
 
 echo "🌍 Base Domain: $BASE_DOMAIN"

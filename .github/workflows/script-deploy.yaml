@@ -3,10 +3,10 @@ name: Run Kubernetes Setup Scripts on EC2
 on:
   push:
     branches:
-      - none
+      - main
 
 env:
-  EC2_HOST: 3.138.116.222
+  EC2_HOST: 3.144.25.67
   EC2_USER: ${{ secrets.EC2_USER }}
 
 jobs:
@@ -81,7 +81,7 @@ jobs:
         id: getlb
         run: |
           LB_DNS=$(ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST \
-            "kubectl get svc -n system1 traefik \
+            "kubectl get svc -n kube-system traefik \
             -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'")
 
           echo "lb_dns=$LB_DNS" >> $GITHUB_OUTPUT

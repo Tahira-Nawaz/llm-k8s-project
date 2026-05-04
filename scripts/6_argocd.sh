@@ -5,7 +5,7 @@ set -e
 # DOMAIN CONFIG
 # =====================================================
 
-BASE_DOMAIN="llm-k8s-tahira.awssolutionsprovider.com"
+BASE_DOMAIN="llm-k8s.awssolutionsprovider.com"
 ARGOCD_DOMAIN="argocd.${BASE_DOMAIN}"
 
 echo "🚀 ArgoCD Domain: $ARGOCD_DOMAIN"
