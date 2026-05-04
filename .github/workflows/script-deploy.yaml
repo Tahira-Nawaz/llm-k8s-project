@@ -85,8 +85,7 @@ jobs:
             -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'")
 
           echo "lb_dns=$LB_DNS" >> $GITHUB_OUTPUT
-
-
+          
   dns-terraform:
     needs: traefik
     runs-on: ubuntu-latest
@@ -101,10 +100,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
       - name: Run Terraform DNS
         run: |
           cd kubernetes/infrastructure/3_Dns_main
+
           export TF_VAR_ingress_lb_hostname="${{ needs.traefik.outputs.lb_dns }}"
+
           terraform init -reconfigure
           terraform apply -auto-approve
 
