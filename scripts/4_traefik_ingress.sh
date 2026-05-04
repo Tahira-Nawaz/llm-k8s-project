@@ -78,7 +78,7 @@ echo "📝 values1.yaml created"
 # 5. Install / Upgrade Traefik
 # =====================================================
 helm upgrade --install traefik traefik/traefik \
-  -n kube-system \
+  -n system1 \
   --create-namespace \
   -f values1.yaml
 
@@ -89,7 +89,7 @@ echo "✅ Traefik installed successfully!"
 
 DNS=""
 while [ -z "$DNS" ] || [ "$DNS" == "<pending>" ]; do
-  DNS=$(kubectl get svc traefik -n kube-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+  DNS=$(kubectl get svc traefik -n system1 -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
   echo "Waiting for LB DNS..."
   sleep 5
 done
