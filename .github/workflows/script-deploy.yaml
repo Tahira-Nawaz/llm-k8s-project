@@ -3,7 +3,7 @@ name: Run Kubernetes Setup Scripts on EC2
 on:
   push:
     branches:
-      - main
+      - none
 
 env:
   EC2_HOST: 3.138.116.222
