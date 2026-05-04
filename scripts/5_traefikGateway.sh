@@ -75,13 +75,14 @@ spec:
     - name: https
       protocol: HTTPS
       port: 443
+      hostname: "${WILDCARD_DOMAIN}"
       tls:
         mode: Terminate
         certificateRefs:
           - name: traefik-tls
-  allowedRoutes:
-    namespaces:
-      from: All
+      allowedRoutes:
+        namespaces:
+          from: All
 EOF
 
 echo "🌟 Gateway + TLS setup completed!"

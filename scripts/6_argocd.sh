@@ -34,6 +34,8 @@ server:
     - --insecure
   service:
     type: ClusterIP
+  ingress:
+    enabled: false
   config:
     url: https://${ARGOCD_DOMAIN}
 
