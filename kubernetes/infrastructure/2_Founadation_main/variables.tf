@@ -63,23 +63,10 @@ variable "artifact_bucket_name" {
 # =============================================================================
 # Route53 / DNS Configuration
 # =============================================================================
-variable "domain_name_prefix" {
-  description = "Domain name for Route53"
-  type        = string
-}
+
 
 variable "zone_id" {
   description = "Existing Route53 Hosted Zone ID (if not creating)"
-  type        = string
-}
-
-# variable "ingress_record_name" {
-#   description = "DNS record name for ingress"
-#   type        = string
-# }
-
-variable "ingress_lb_hostname" {
-  description = "Load balancer hostname for ingress"
   type        = string
 }
 variable "cluster_name" {

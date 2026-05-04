@@ -39,11 +39,4 @@ output "rancher_node_sg_name" {
   value       = module.security_groups.master_sg_id
 }
 
-# -----------------------------------------------------------------------------
-# Route53
-# -----------------------------------------------------------------------------
 
-output "route53_record_fqdn" {
-  description = "Route53 domain used for the project"
-  value       = module.route53.record_fqdn
-}

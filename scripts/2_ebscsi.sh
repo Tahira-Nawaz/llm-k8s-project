@@ -40,3 +40,19 @@ while true; do
     exit 1
   fi
 done
+
+# ============================================
+# 3: storageclass
+# ============================================
+
+kubectl apply -f - <<EOF
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-sc
+provisioner: ebs.csi.aws.com
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+EOF
+
+echo "✅ StorageClass created successfully"

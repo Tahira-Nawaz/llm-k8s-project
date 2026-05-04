@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  EC2_HOST: 3.149.230.149
+  EC2_HOST: 3.138.116.222
   EC2_USER: ${{ secrets.EC2_USER }}
 
 jobs:
@@ -61,6 +61,10 @@ jobs:
   traefik:
     needs: cluster-manager
     runs-on: ubuntu-latest
+
+    outputs:
+      lb_dns: ${{ steps.getlb.outputs.lb_dns }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -73,10 +77,59 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST "bash -s" < scripts/4_traefik_ingress.sh
 
+      - name: Get Traefik LB DNS
+        id: getlb
+        run: |
+          LB_DNS=$(ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST \
+            "kubectl get svc -n kube-system traefik \
+            -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'")
 
-  argocd:
+          echo "lb_dns=$LB_DNS" >> $GITHUB_OUTPUT
+
+
+  dns-terraform:
     needs: traefik
     runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Run Terraform DNS
+        run: |
+          cd kubernetes/infrastructure/3_Dns_main
+          export TF_VAR_ingress_lb_hostname="${{ needs.traefik.outputs.lb_dns }}"
+          terraform init -reconfigure
+          terraform apply -auto-approve
+
+
+  traefik-gateway:
+    needs: dns-terraform
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: Run Traefik Gateway script
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST "bash -s" < scripts/5_traefikGateway.sh
+
+
+  argocd:
+    needs: traefik-gateway
+    runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -87,4 +140,4 @@ jobs:
 
       - name: Run ArgoCD script
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST "bash -s" < scripts/5_argocd.sh
+          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST "bash -s" < scripts/6_argocd.sh
