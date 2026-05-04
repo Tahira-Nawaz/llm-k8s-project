@@ -81,11 +81,11 @@ jobs:
         id: getlb
         run: |
           LB_DNS=$(ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST \
-            "kubectl get svc -n kube-system traefik \
+            "kubectl get svc -n system1 traefik \
             -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'")
 
           echo "lb_dns=$LB_DNS" >> $GITHUB_OUTPUT
-          
+
   dns-terraform:
     needs: traefik
     runs-on: ubuntu-latest
